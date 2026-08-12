@@ -1,3 +1,5 @@
+import { navBar, NAV_CSS } from "./nav.js";
+
 /** Agent-pays demo — an autonomous, server-side "agent" that pays a tiny gated USDC amount per action, subject to a visible spend cap. No wallet-connect needed here — the agent signs itself, via Circle's developer-controlled wallet adapter. */
 export function agentPage(): string {
   return `<!doctype html>
@@ -29,12 +31,14 @@ export function agentPage(): string {
   a { color:var(--accent); }
   .spin { color:var(--text-dim); }
   .banner { padding:10px 12px; border-radius:6px; font-size:13px; margin-top:10px; }
+  ${NAV_CSS}
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>🤖 Agent-pays demo</h1>
   <div class="sub">A server-side agent autonomously pays a tiny USDC amount per action — Circle's "agentic economy" pitch for Arc, live. No wallet popup: the agent signs itself, via a developer-controlled wallet.</div>
+  ${navBar("agent")}
 
   <div class="card">
     <div class="muted" style="margin-bottom:8px">Spend cap (this session)</div>

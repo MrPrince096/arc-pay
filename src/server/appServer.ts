@@ -6,6 +6,8 @@ import { appPage } from "./appPage.js";
 import { payPage } from "./payPage.js";
 import { agentPage } from "./agentPage.js";
 import { swapPage } from "./swapPage.js";
+import { faucetPage } from "./faucetPage.js";
+import { transactionsPage } from "./transactionsPage.js";
 import {
   apiBalance, apiTxs,
   apiListInvoices, apiGetInvoice, apiCreateInvoice, apiConfirmInvoice,
@@ -86,6 +88,18 @@ export function startAppServer(port: number): Server {
     if (url.pathname === "/swap") {
       res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
       res.end(swapPage());
+      return;
+    }
+
+    if (url.pathname === "/faucet") {
+      res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
+      res.end(faucetPage());
+      return;
+    }
+
+    if (url.pathname === "/transactions") {
+      res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
+      res.end(transactionsPage());
       return;
     }
 

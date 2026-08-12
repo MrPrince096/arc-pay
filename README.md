@@ -30,6 +30,8 @@ pnpm dev   # then open http://localhost:8787
 | Agent-pays demo — gated autonomous USDC micropayments | ✅ done, live-verified (real send, real tx on Arcscan) |
 | Spend-cap enforcement (per-action + daily, checked before any send) | ✅ done |
 | USDC ↔ EURC swap (`/swap`) — via App Kit's own `kit.swap()` | ✅ done, live-verified quote |
+| Dedicated pages: `/faucet` (links to Circle's real faucet), `/transactions` (full history, any address) | ✅ done |
+| Shared top nav across all pages | ✅ done |
 | Automated test suite (Vitest, 27 tests) | ✅ done |
 
 ## Why Arc

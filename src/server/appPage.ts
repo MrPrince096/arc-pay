@@ -1,4 +1,5 @@
 import { ARC_EXPLORER_URL } from "../chain/constants.js";
+import { navBar, NAV_CSS } from "./nav.js";
 
 /** The dashboard SPA. Vanilla JS, no framework — the only bundled piece is the wallet-connect script tag below. */
 export function appPage(): string {
@@ -32,12 +33,14 @@ export function appPage(): string {
   td { padding:8px; border-bottom:1px solid #1c2330; font-variant-numeric:tabular-nums; }
   a { color:var(--accent); }
   .spin { color:var(--text-dim); }
+  ${NAV_CSS}
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>⚡ Arc Pay</h1>
-  <div class="sub">USDC dashboard on Arc Testnet — connect a wallet to see your live balance. <a href="/agent">🤖 Agent-pays demo →</a> · <a href="/swap">🔄 Swap USDC ↔ EURC →</a></div>
+  <div class="sub">USDC dashboard on Arc Testnet — connect a wallet to see your live balance.</div>
+  ${navBar("dashboard")}
 
   <div class="card">
     <button id="connect-btn" onclick="connect()">Connect wallet</button>

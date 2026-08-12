@@ -11,3 +11,5 @@ data/agent-spend.json
 *.key
 keystore/
 recovery/
+blog-post-draft.md
+discord-announcement-draft.md

@@ -1,4 +1,5 @@
 import { ARC_EXPLORER_URL } from "../chain/constants.js";
+import { navBar, NAV_CSS } from "./nav.js";
 
 /** USDC ↔ EURC swap demo — powered by App Kit's own kit.swap()/estimateSwap(), verified live on Arc Testnet. Reuses the same wallet-bundle.js as the dashboard and pay page. */
 export function swapPage(): string {
@@ -31,12 +32,14 @@ export function swapPage(): string {
   .addr { font-family:ui-monospace,monospace; font-size:13px; word-break:break-all; }
   a { color:var(--accent); }
   .spin { color:var(--text-dim); }
+  ${NAV_CSS}
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>🔄 Swap</h1>
-  <div class="sub">USDC ↔ EURC on Arc Testnet — quoted and executed via Circle App Kit's own <code>kit.swap()</code>, not a hand-rolled contract call. <a href="/">← Dashboard</a></div>
+  <div class="sub">USDC ↔ EURC on Arc Testnet — quoted and executed via Circle App Kit's own <code>kit.swap()</code>, not a hand-rolled contract call.</div>
+  ${navBar("swap")}
 
   <div class="card">
     <button id="connect-btn" onclick="connect()">Connect wallet</button>
@@ -54,7 +57,7 @@ export function swapPage(): string {
     </div>
     <div class="swap-flip"><button class="btn-ghost" onclick="flip()" title="Flip direction">⇅</button></div>
     <div class="row">
-      <input id="token-out-display" disabled style="flex:1;opacity:.6"/>
+      <div class="muted" style="flex:1">to</div>
       <select id="token-out">
         <option value="EURC">EURC</option>
         <option value="USDC">USDC</option>
