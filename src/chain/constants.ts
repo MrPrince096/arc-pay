@@ -51,3 +51,13 @@ export const EURC_ADDRESS = "0x89B50855Aa3bE2F677cD6303Cec089B5F319D72a" as cons
 export const ARC_SWAP_FACTORY_ADDRESS = "0x7483847d46db2920dd64efa676cf72dcf765814f" as const;
 export const ARC_SWAP_ROUTER_ADDRESS = "0xe27d5d256b370604f1ff060fb489c6a8e3f8a6d9" as const;
 export const ARC_SWAP_USDC_EURC_PAIR_ADDRESS = "0xb3685D16AAa06361ED28377b1319136650Fa9A13" as const;
+
+/**
+ * ArcPayDemoNFT — a free-mint ERC-721 (contracts/ArcPayDemoNFT.sol) this
+ * project deployed itself to Arc Testnet via scripts/deploy-nft.ts, funded
+ * from the agent wallet. Verified live: deployed bytecode present, real
+ * state reads (name/symbol/MAX_SUPPLY), and a real end-to-end mint via
+ * Circle's Developer-Controlled Wallets contract-execution API
+ * (scripts/test-mint.ts) — totalSupply went to 1, owned by the sender.
+ */
+export const ARC_NFT_CONTRACT_ADDRESS = "0x6019a0900a73d5bf6294f3f5bbb27e99202610cf" as const;

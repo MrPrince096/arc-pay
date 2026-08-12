@@ -25,6 +25,7 @@
   "devDependencies": {
     "@circle-fin/developer-controlled-wallets": "^10.8.0",
     "@types/node": "^22.10.0",
+    "solc": "^0.8.36",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2",
     "vite": "^8.2.1",

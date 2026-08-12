@@ -15,7 +15,7 @@
 import { AppKit, type BridgeStep, type SwapResult, type SwapEstimate } from "@circle-fin/app-kit";
 import { createViemAdapterFromProvider } from "@circle-fin/adapter-viem-v2";
 import { ArcTestnet } from "@circle-fin/app-kit/chains";
-import type { EIP1193Provider } from "viem";
+import { createWalletClient, custom, defineChain, type EIP1193Provider, type WalletClient } from "viem";
 
 declare global {
   interface Window {
@@ -23,12 +23,30 @@ declare global {
   }
 }
 
+/**
+ * App Kit's adapters only expose the high-level financial primitives
+ * (send/swap/signTypedData-for-permits) — no plain message signing, no
+ * generic contract writes. For the sign demo and NFT mint, we go straight
+ * to viem against the same connected provider instead. Chain values match
+ * `src/chain/arcClient.ts` exactly (duplicated, not imported — that file
+ * reads `process.env`, which doesn't exist in a browser bundle).
+ */
+const arcTestnetChain = defineChain({
+  id: 5042002,
+  name: "Arc Testnet",
+  nativeCurrency: { name: "USD Coin", symbol: "USDC", decimals: 18 },
+  rpcUrls: { default: { http: ["https://rpc.testnet.arc.io"] } },
+  blockExplorers: { default: { name: "Arcscan", url: "https://testnet.arcscan.app" } },
+  testnet: true,
+});
+
 const kit = new AppKit();
 // AdapterCapabilities isn't publicly exported from either package — let
 // inference give this its real type via ReturnType, rather than naming
 // something the SDK doesn't expose.
 let adapter: Awaited<ReturnType<typeof createViemAdapterFromProvider>> | null = null;
 let connectedAddress: string | null = null;
+let walletClient: WalletClient | null = null;
 
 async function connect(): Promise<string> {
   const eth = window.ethereum;
@@ -40,6 +58,7 @@ async function connect(): Promise<string> {
   await eth.request({ method: "eth_requestAccounts" });
   adapter = await createViemAdapterFromProvider({ provider: eth, capabilities: { addressContext: "user-controlled" } });
   connectedAddress = await adapter.getAddress(ArcTestnet);
+  walletClient = createWalletClient({ chain: arcTestnetChain, transport: custom(eth) });
   return connectedAddress;
 }
 
@@ -94,7 +113,57 @@ async function swap(tokenIn: "USDC" | "EURC", tokenOut: "USDC" | "EURC", amountI
   return result.txHash;
 }
 
-window.ArcPayWallet = { connect, getAddress, send, estimateSwap, swap };
+/** Plain personal_sign — off-chain, no gas, no transaction. Returns the hex signature. */
+async function signMessage(message: string): Promise<string> {
+  if (!walletClient || !connectedAddress) throw new Error("Connect a wallet first.");
+  return walletClient.signMessage({ account: connectedAddress as `0x${string}`, message });
+}
+
+/**
+ * EIP-712 typed-data signing demo — a fixed "Greeting" struct, purely to
+ * demonstrate structured signing (the same mechanism behind permits, just
+ * not tied to a specific token). Off-chain, no gas. Returns the exact
+ * message/timestamp signed alongside the signature — the caller needs
+ * those EXACT values (not independently regenerated ones) to verify, since
+ * they're part of what got signed.
+ */
+async function signTypedDataDemo(): Promise<{ signature: string; message: string; timestamp: number }> {
+  if (!walletClient || !connectedAddress) throw new Error("Connect a wallet first.");
+  const message = "gm from Arc Pay";
+  const timestamp = Math.floor(Date.now() / 1000);
+  const signature = await walletClient.signTypedData({
+    account: connectedAddress as `0x${string}`,
+    domain: { name: "Arc Pay", version: "1", chainId: 5042002 },
+    types: {
+      Greeting: [
+        { name: "from", type: "address" },
+        { name: "message", type: "string" },
+        { name: "timestamp", type: "uint256" },
+      ],
+    },
+    primaryType: "Greeting",
+    message: { from: connectedAddress as `0x${string}`, message, timestamp: BigInt(timestamp) },
+  });
+  return { signature, message, timestamp };
+}
+
+const NFT_MINT_ABI = [
+  { type: "function", name: "mint", stateMutability: "nonpayable", inputs: [], outputs: [{ type: "uint256" }] },
+] as const;
+
+/** Calls `mint()` on the deployed demo NFT collection — the connected wallet pays its own gas and receives the token. */
+async function mintNft(contractAddress: string): Promise<string> {
+  if (!walletClient || !connectedAddress) throw new Error("Connect a wallet first.");
+  return walletClient.writeContract({
+    chain: arcTestnetChain,
+    account: connectedAddress as `0x${string}`,
+    address: contractAddress as `0x${string}`,
+    abi: NFT_MINT_ABI,
+    functionName: "mint",
+  });
+}
+
+window.ArcPayWallet = { connect, getAddress, send, estimateSwap, swap, signMessage, signTypedDataDemo, mintNft };
 
 declare global {
   interface Window {
@@ -104,6 +173,9 @@ declare global {
       send(to: string, amountUsdc: string): Promise<string>;
       estimateSwap(tokenIn: "USDC" | "EURC", tokenOut: "USDC" | "EURC", amountIn: string): Promise<SwapEstimate>;
       swap(tokenIn: "USDC" | "EURC", tokenOut: "USDC" | "EURC", amountIn: string): Promise<string>;
+      signMessage(message: string): Promise<string>;
+      signTypedDataDemo(): Promise<{ signature: string; message: string; timestamp: number }>;
+      mintNft(contractAddress: string): Promise<string>;
     };
   }
 }

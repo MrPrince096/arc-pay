@@ -1,7 +1,8 @@
-import { isAddress } from "viem";
+import { isAddress, verifyMessage, verifyTypedData } from "viem";
 import { getWalletBalance } from "../chain/balance.js";
 import { getTxHistory } from "../chain/txHistory.js";
 import { verifyPayment } from "../chain/payments.js";
+import { getNftStats } from "../chain/nft.js";
 import { listInvoices, getInvoice, createInvoice, markInvoicePaid } from "./invoiceStore.js";
 import { performGatedAction } from "../agent/circleWalletsAgent.js";
 import { listSpend } from "./agentSpendStore.js";
@@ -19,6 +20,13 @@ export async function apiBalance(q: URLSearchParams) {
 
 export async function apiTxs(q: URLSearchParams) {
   return getTxHistory(requireAddress(q));
+}
+
+/** address is optional here — stats are viewable before connecting a wallet. */
+export async function apiNftStats(q: URLSearchParams) {
+  const address = q.get("address");
+  if (address && !isAddress(address)) throw new Error("address must be a valid 0x address.");
+  return getNftStats(address as `0x${string}` | undefined);
 }
 
 // --- Invoices ----------------------------------------------------------------
@@ -73,6 +81,48 @@ export async function apiAgentAction(_q: URLSearchParams, body: unknown) {
   if (!Number.isFinite(amountUsdc) || amountUsdc <= 0) throw new Error("amountUsdc must be a positive number.");
   const action = b?.action?.trim() || "unlock-content";
   return performGatedAction(amountUsdc, action, to);
+}
+
+// --- Signature verification ---------------------------------------------------
+
+/** Independently verifies a personal_sign signature server-side — pure math (ecrecover), no chain access needed, but consistent with the app's "never just trust the client" posture used everywhere else (payments, agent sends). */
+export async function apiVerifySignature(_q: URLSearchParams, body: unknown) {
+  const b = body as { message?: string; signature?: string; address?: string } | undefined;
+  const message = b?.message;
+  const signature = b?.signature as `0x${string}` | undefined;
+  const address = b?.address;
+  if (!message) throw new Error("message is required.");
+  if (!signature || !/^0x[0-9a-fA-F]+$/.test(signature)) throw new Error("A valid signature is required.");
+  if (!address || !isAddress(address)) throw new Error("A valid address is required.");
+  const valid = await verifyMessage({ address: address as `0x${string}`, message, signature });
+  return { valid, address };
+}
+
+/** Same idea for the EIP-712 typed-data demo — verifies the fixed "Greeting" struct signed by walletConnect.entry.ts's signTypedDataDemo(). */
+export async function apiVerifyTypedData(_q: URLSearchParams, body: unknown) {
+  const b = body as { signature?: string; address?: string; message?: string; timestamp?: number } | undefined;
+  const signature = b?.signature as `0x${string}` | undefined;
+  const address = b?.address;
+  if (!signature || !/^0x[0-9a-fA-F]+$/.test(signature)) throw new Error("A valid signature is required.");
+  if (!address || !isAddress(address)) throw new Error("A valid address is required.");
+  const message = b?.message;
+  const timestamp = b?.timestamp;
+  if (!message || typeof timestamp !== "number" || !Number.isFinite(timestamp)) throw new Error("message and timestamp are required.");
+  const valid = await verifyTypedData({
+    address: address as `0x${string}`,
+    domain: { name: "Arc Pay", version: "1", chainId: 5042002 },
+    types: {
+      Greeting: [
+        { name: "from", type: "address" },
+        { name: "message", type: "string" },
+        { name: "timestamp", type: "uint256" },
+      ],
+    },
+    primaryType: "Greeting",
+    message: { from: address as `0x${string}`, message, timestamp: BigInt(timestamp) },
+    signature,
+  });
+  return { valid, address };
 }
 
 export async function apiAgentSpendLog(_q: URLSearchParams) {

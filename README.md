@@ -1,8 +1,9 @@
 # Arc Pay
 
-A standalone USDC dashboard, payments/invoicing tool, USDC↔EURC swap, and
-autonomous agent-pays demo, built on **Arc** — Circle's new EVM-compatible
-L1 where **USDC is the native gas token**.
+A standalone USDC dashboard, payments/invoicing tool, USDC↔EURC swap, a
+free-mint NFT demo, message/typed-data signing, and an autonomous agent-pays
+demo, built on **Arc** — Circle's new EVM-compatible L1 where **USDC is the
+native gas token**.
 
 > ⚠️ **Testnet only, right now.** Every value in this codebase (chain id,
 > RPC/explorer URLs, contract addresses) was verified directly against Arc's
@@ -29,9 +30,11 @@ pnpm dev   # then open http://localhost:8787
 | On-chain payment verification (never trusts a client-reported "paid") | ✅ done |
 | Agent-pays demo — gated autonomous USDC micropayments | ✅ done, live-verified (real send, real tx on Arcscan) |
 | Spend-cap enforcement (per-action + daily, checked before any send) | ✅ done |
-| USDC ↔ EURC swap (`/swap`) — via App Kit's own `kit.swap()` | ✅ done, live-verified quote |
+| USDC ↔ EURC swap (`/swap`) — via App Kit's own `kit.swap()`, real balance shown, MAX button | ✅ done, live-verified |
+| NFT mint (`/mint`) — a real ERC-721 this project wrote, deployed, and verified on Arc Testnet | ✅ done, live-verified (real mint, real owner on-chain) |
+| Message + typed-data signing (`/sign`) — server-verified via ecrecover | ✅ done, live-verified |
 | Dedicated pages: `/faucet` (links to Circle's real faucet), `/transactions` (full history, any address) | ✅ done |
-| Shared top nav across all pages | ✅ done |
+| Sidebar nav shared across all pages, precision-instrument design system | ✅ done |
 | Automated test suite (Vitest, 27 tests) | ✅ done |
 
 ## Why Arc
@@ -82,7 +85,7 @@ MetaMask → Networks → Add network → Add a network manually:
 Then claim testnet USDC at [faucet.circle.com](https://faucet.circle.com)
 (captcha-gated — you have to claim it yourself, this can't be automated).
 
-## The four features
+## The six features
 
 ### 1. Wallet dashboard
 
@@ -123,7 +126,35 @@ factory/router/pair addresses, confirmed live via real bytecode + non-zero
 reserves), but the app only ever calls App Kit's own interface, never that
 contract directly.
 
-### 4. Agent-pays demo
+### 4. Mint — free NFT demo
+
+At `/mint`: a real ERC-721 ([`contracts/ArcPayDemoNFT.sol`](contracts/ArcPayDemoNFT.sol))
+this project wrote, compiled, and deployed itself — no OpenZeppelin import,
+no framework, ~150 lines implementing the standard interface directly. Free
+public mint, capped at 10,000 tokens / 5 per wallet, fully on-chain
+`tokenURI` (no off-chain metadata to keep alive). Deployment was funded from
+the agent wallet ([`scripts/deploy-nft.ts`](scripts/deploy-nft.ts)), and the
+whole thing was verified with a real end-to-end mint via Circle's
+Developer-Controlled Wallets contract-execution API
+([`scripts/test-mint.ts`](scripts/test-mint.ts)) — `totalSupply` went to
+`1`, owned by the sender, confirmed by reading it back from the chain. Each
+visitor's own connected wallet calls `mint()` directly and pays its own gas
+— no server involved in the mint itself.
+
+### 5. Sign — message & typed-data signing
+
+At `/sign`: `personal_sign` and EIP-712 typed-data signing, both via plain
+viem against the connected wallet — App Kit's adapters only expose
+send/swap/permit-signing, no generic message signing, so this bypasses App
+Kit entirely for these two ([`src/client/walletConnect.entry.ts`](src/client/walletConnect.entry.ts)).
+Off-chain, no gas, no transaction. Every signature is independently
+re-verified server-side via `ecrecover`
+([`src/server/api.ts`](src/server/api.ts)) — verified live with a real
+signature (valid → `true`) and a deliberately mismatched address (→
+`false`), matching the "never just trust the client" posture used
+everywhere else in this app.
+
+### 6. Agent-pays demo
 
 At `/agent`: a server-side "agent" that autonomously pays a tiny USDC amount
 per action — no wallet popup, since the agent signs with its own
@@ -169,13 +200,16 @@ real Circle Wallets adapter).
 ## Architecture
 
 ```
-core/     env loading, logger, shared types
-chain/    viem client for Arc testnet, balance reads, tx history, payment verification
-server/   zero-dep node:http server, JSON routes, JSON-file invoice/spend persistence
-client/   the ONE bundled browser file (wallet-connect + kit.send, via Vite) — everything
-          else is plain unbundled Node, same house style as the sibling Crypto auto project
-agent/    spend-cap enforcement + the gated Circle-Wallets-signed send
-cli/      pnpm check — live RPC connectivity smoke test
+core/      env loading, logger, shared types
+chain/     viem client for Arc testnet, balance/NFT reads, tx history, payment verification
+server/    zero-dep node:http server, JSON routes, shared theme.ts design system + page shell
+client/    the ONE bundled browser file (wallet-connect + kit.send/swap + plain-viem sign/mint,
+           via Vite) — everything else is plain unbundled Node, same house style as the
+           sibling Crypto auto project
+agent/     spend-cap enforcement + the gated Circle-Wallets-signed send
+contracts/ ArcPayDemoNFT.sol — the hand-written ERC-721 this project deployed itself
+cli/       pnpm check — live RPC connectivity smoke test
+scripts/   one-time setup/deploy scripts (entity secret, agent wallet, NFT compile/deploy)
 ```
 
 **Why one Vite build, when everything else is bundler-free?** Circle's

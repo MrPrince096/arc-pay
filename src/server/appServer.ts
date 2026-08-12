@@ -8,10 +8,14 @@ import { agentPage } from "./agentPage.js";
 import { swapPage } from "./swapPage.js";
 import { faucetPage } from "./faucetPage.js";
 import { transactionsPage } from "./transactionsPage.js";
+import { signPage } from "./signPage.js";
+import { mintPage } from "./mintPage.js";
 import {
   apiBalance, apiTxs,
   apiListInvoices, apiGetInvoice, apiCreateInvoice, apiConfirmInvoice,
   apiAgentAction, apiAgentSpendLog,
+  apiVerifySignature, apiVerifyTypedData,
+  apiNftStats,
 } from "./api.js";
 
 /** `body` is `undefined` for GET routes — same pattern as the sibling Crypto auto project. */
@@ -46,6 +50,9 @@ const ROUTES: Record<string, Handler> = {
   "/api/invoices/confirm": apiConfirmInvoice,
   "/api/agent/action": apiAgentAction,
   "/api/agent/spend-log": apiAgentSpendLog,
+  "/api/sign/verify": apiVerifySignature,
+  "/api/sign/verify-typed": apiVerifyTypedData,
+  "/api/nft/stats": apiNftStats,
 };
 
 const STATIC_DIR = join(process.cwd(), "src", "server", "static");
@@ -100,6 +107,18 @@ export function startAppServer(port: number): Server {
     if (url.pathname === "/transactions") {
       res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
       res.end(transactionsPage());
+      return;
+    }
+
+    if (url.pathname === "/sign") {
+      res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
+      res.end(signPage());
+      return;
+    }
+
+    if (url.pathname === "/mint") {
+      res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
+      res.end(mintPage());
       return;
     }
 
