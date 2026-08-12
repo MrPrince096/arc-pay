@@ -68,10 +68,26 @@ async function estimateSwap(tokenIn: "USDC" | "EURC", tokenOut: "USDC" | "EURC",
   return kit.estimateSwap({ from: { adapter, chain: "Arc_Testnet" }, tokenIn, tokenOut, amountIn });
 }
 
-/** Executes the swap (prompts the wallet for approval + swap signatures). Returns the tx hash on success. */
+/**
+ * Executes the swap (prompts the wallet for one or two on-chain
+ * transactions: approve + swap). Returns the tx hash on success.
+ *
+ * Forces `allowanceStrategy: 'approve'` — App Kit's default is a gasless
+ * EIP-2612 'permit' signature with fallback to on-chain approve, but the
+ * permit path fails on Arc Testnet with "Permit generation failed ...
+ * chainId should be same as current chainId" (confirmed live). Arc's USDC
+ * ERC-20 interface likely doesn't support EIP-2612 permit the way App Kit
+ * expects, so this skips straight to the standard on-chain approve.
+ */
 async function swap(tokenIn: "USDC" | "EURC", tokenOut: "USDC" | "EURC", amountIn: string): Promise<string> {
   if (!adapter) throw new Error("Connect a wallet first.");
-  const result: SwapResult = await kit.swap({ from: { adapter, chain: "Arc_Testnet" }, tokenIn, tokenOut, amountIn });
+  const result: SwapResult = await kit.swap({
+    from: { adapter, chain: "Arc_Testnet" },
+    tokenIn,
+    tokenOut,
+    amountIn,
+    config: { allowanceStrategy: "approve" },
+  });
   if (result.progress.status === "FAILED" || result.progress.status === "NOT_FOUND" || !result.txHash) {
     throw new Error(result.progress.substatusMessage || `Swap did not complete (status: ${result.progress.status}).`);
   }
