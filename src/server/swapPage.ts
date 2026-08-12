@@ -185,7 +185,7 @@ async function doSwap(){
 
   return pageShell({
     active: "swap",
-    title: "Swap — Arc Pay",
+    title: "Swap — PraneethArc",
     eyebrow: "Exchange",
     pageTitle: "Swap",
     subtitle: "USDC ↔ EURC on Arc Testnet, quoted and executed via Circle App Kit.",

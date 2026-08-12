@@ -1,9 +1,12 @@
-# Arc Pay
+# PraneethArc
+
+*(repo name `arc-pay` — the live site is branded PraneethArc)*
 
 A standalone USDC dashboard, payments/invoicing tool, USDC↔EURC swap, a
 free-mint NFT demo, message/typed-data signing, and an autonomous agent-pays
 demo, built on **Arc** — Circle's new EVM-compatible L1 where **USDC is the
-native gas token**.
+native gas token**. Part of the [Praneeth Labs](https://praneethlabs.com)
+studio.
 
 > ⚠️ **Testnet only, right now.** Every value in this codebase (chain id,
 > RPC/explorer URLs, contract addresses) was verified directly against Arc's

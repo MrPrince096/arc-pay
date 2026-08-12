@@ -8,7 +8,7 @@ export function payPage(invoiceId: string): string {
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Pay invoice — Arc Pay</title>
+<title>Pay invoice — PraneethArc</title>
 ${FONTS}
 <style>
 ${BASE_CSS}
@@ -26,7 +26,7 @@ ${BASE_CSS}
 </head>
 <body>
 <div class="checkout">
-  <div class="brandmini"><div class="mark">⚡</div><div class="word">Arc Pay</div></div>
+  <div class="brandmini"><div class="mark">⚡</div><div class="word">PraneethArc</div></div>
   <div class="paycard" id="card">
     <div class="spin" style="justify-content:center">Loading invoice</div>
   </div>

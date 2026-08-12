@@ -25,10 +25,10 @@ export function faucetPage(): string {
 
   return pageShell({
     active: "faucet",
-    title: "Faucet — Arc Pay",
+    title: "Faucet — PraneethArc",
     eyebrow: "Testnet funds",
     pageTitle: "Faucet",
-    subtitle: "Claim free testnet USDC/EURC to try the rest of Arc Pay.",
+    subtitle: "Claim free testnet USDC/EURC to try the rest of PraneethArc.",
     body,
     extraHead: EXTRA_CSS,
   });

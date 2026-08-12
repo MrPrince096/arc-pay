@@ -1,5 +1,5 @@
 /**
- * Boots the Arc Pay web server.
+ * Boots the PraneethArc web server.
  *
  *   pnpm dev     (rebuilds the wallet-connect client bundle first, then serves)
  */

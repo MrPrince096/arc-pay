@@ -65,7 +65,7 @@ async function loadFor(address){
 
   return pageShell({
     active: "transactions",
-    title: "Transactions — Arc Pay",
+    title: "Transactions — PraneethArc",
     eyebrow: "Ledger",
     pageTitle: "Transactions",
     subtitle: "Recent USDC transfers for any address on Arc Testnet — reads live from the RPC, scanning the last 10,000 blocks.",

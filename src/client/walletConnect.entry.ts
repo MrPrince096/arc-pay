@@ -129,11 +129,11 @@ async function signMessage(message: string): Promise<string> {
  */
 async function signTypedDataDemo(): Promise<{ signature: string; message: string; timestamp: number }> {
   if (!walletClient || !connectedAddress) throw new Error("Connect a wallet first.");
-  const message = "gm from Arc Pay";
+  const message = "gm from PraneethArc";
   const timestamp = Math.floor(Date.now() / 1000);
   const signature = await walletClient.signTypedData({
     account: connectedAddress as `0x${string}`,
-    domain: { name: "Arc Pay", version: "1", chainId: 5042002 },
+    domain: { name: "PraneethArc", version: "1", chainId: 5042002 },
     types: {
       Greeting: [
         { name: "from", type: "address" },

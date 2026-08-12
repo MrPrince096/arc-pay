@@ -19,14 +19,14 @@ export function signPage(): string {
   <div id="sign-cards" style="display:none">
     <div class="card">
       <div class="card-label">Sign a message (personal_sign)</div>
-      <textarea id="msg-input">gm from Arc Pay 👋</textarea>
+      <textarea id="msg-input">gm from PraneethArc 👋</textarea>
       <button style="margin-top:10px" onclick="doSignMessage()">Sign message</button>
       <div id="msg-out"></div>
     </div>
 
     <div class="card">
       <div class="card-label">Sign typed data (EIP-712)</div>
-      <div class="muted">Signs a fixed <code>Greeting</code> struct — the same mechanism behind permit signatures, just not tied to a token. Domain: <code>Arc Pay</code>, chain 5042002.</div>
+      <div class="muted">Signs a fixed <code>Greeting</code> struct — the same mechanism behind permit signatures, just not tied to a token. Domain: <code>PraneethArc</code>, chain 5042002.</div>
       <button style="margin-top:12px" onclick="doSignTyped()">Sign typed data</button>
       <div id="typed-out"></div>
     </div>
@@ -90,7 +90,7 @@ async function doSignTyped(){
 
   return pageShell({
     active: "sign",
-    title: "Sign — Arc Pay",
+    title: "Sign — PraneethArc",
     eyebrow: "Off-chain",
     pageTitle: "Sign",
     subtitle: "Message and typed-data signing — no gas, no transaction. Each signature is independently re-verified server-side via ecrecover, never just trusted.",

@@ -77,7 +77,7 @@ loadStatus();
 
   return pageShell({
     active: "agent",
-    title: "Agent demo — Arc Pay",
+    title: "Agent demo — PraneethArc",
     eyebrow: "Agentic economy",
     pageTitle: "Agent-pays demo",
     subtitle: "A server-side agent autonomously pays a tiny USDC amount per action. No wallet popup — it signs itself via a Circle developer-controlled wallet, gated by a visible spend cap.",

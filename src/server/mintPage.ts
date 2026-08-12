@@ -93,7 +93,7 @@ loadStats();
 
   return pageShell({
     active: "mint",
-    title: "Mint — Arc Pay",
+    title: "Mint — PraneethArc",
     eyebrow: "NFT",
     pageTitle: "Mint",
     subtitle: "A free-mint ERC-721 this project deployed and verified live on Arc Testnet — real contract, real mint, your own gas.",

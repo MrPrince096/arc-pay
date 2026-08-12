@@ -1,5 +1,5 @@
 /**
- * Shared design system + page shell for Arc Pay. One place for fonts,
+ * Shared design system + page shell for PraneethArc. One place for fonts,
  * design tokens, base component styles, and the sidebar layout — every
  * page (except the standalone payer view) renders through `pageShell()`
  * instead of hand-rolling its own <html> boilerplate.
@@ -196,7 +196,7 @@ function sidebar(active: NavId): string {
     )
     .join("");
   return `<div class="sidebar">
-    <div class="brand"><div class="mark">⚡</div><div class="word">Arc <i>Pay</i></div></div>
+    <div class="brand"><div class="mark">⚡</div><div class="word">Praneeth<i>Arc</i></div></div>
     ${links}
     <div class="sidebar-foot"><div class="netstat"><span class="dot"></span>Arc Testnet · live</div></div>
   </div>`;

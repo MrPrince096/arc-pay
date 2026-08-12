@@ -1,0 +1,43 @@
+# Render Blueprint — https://render.com/docs/blueprint-spec
+# On render.com: New -> Blueprint -> connect this repo -> Render reads this
+# file automatically and proposes the service below. Secrets (CIRCLE_API_KEY,
+# CIRCLE_ENTITY_SECRET, AGENT_WALLET_ADDRESS) are marked sync:false so Render
+# prompts for them in the dashboard instead of storing them in this file.
+#
+# KNOWN LIMITATION: the free plan has no persistent disk. data/invoices.json
+# and data/agent-spend.json (this app's only local-file state — everything
+# else reads live from the chain) can be wiped on restart/redeploy/spin-down.
+# Fine for a public demo; if real durability is ever needed, either attach a
+# paid Render Disk or move that storage to a real database.
+services:
+  - type: web
+    name: praneetharc
+    runtime: node
+    plan: free
+    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm build
+    startCommand: pnpm start
+    envVars:
+      - key: NODE_VERSION
+        value: 20.18.0
+      - key: ARC_RPC_URL
+        value: https://rpc.testnet.arc.io
+      - key: ARC_WS_URL
+        value: wss://rpc.testnet.arc.io
+      - key: ARC_CHAIN_ID
+        value: "5042002"
+      - key: ARC_EXPLORER_URL
+        value: https://testnet.arcscan.app
+      # Deliberately NOT set here: AGENT_LIVE_CONFIRM. Leaving it unset keeps
+      # the public agent-pays demo dry-run-only — no visitor can trigger a
+      # real send. Do not set this in the Render dashboard unless you want
+      # the public site to actually move funds.
+      - key: CIRCLE_API_KEY
+        sync: false
+      - key: CIRCLE_ENTITY_SECRET
+        sync: false
+      - key: AGENT_WALLET_ADDRESS
+        sync: false
+      - key: AGENT_MAX_SPEND_PER_ACTION_USDC
+        value: "0.01"
+      - key: AGENT_DAILY_SPEND_CAP_USDC
+        value: "1.00"

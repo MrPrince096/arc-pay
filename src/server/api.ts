@@ -110,7 +110,7 @@ export async function apiVerifyTypedData(_q: URLSearchParams, body: unknown) {
   if (!message || typeof timestamp !== "number" || !Number.isFinite(timestamp)) throw new Error("message and timestamp are required.");
   const valid = await verifyTypedData({
     address: address as `0x${string}`,
-    domain: { name: "Arc Pay", version: "1", chainId: 5042002 },
+    domain: { name: "PraneethArc", version: "1", chainId: 5042002 },
     types: {
       Greeting: [
         { name: "from", type: "address" },

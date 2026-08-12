@@ -146,7 +146,7 @@ setInterval(loadInvoices, 3000);
 
   return pageShell({
     active: "dashboard",
-    title: "Arc Pay",
+    title: "PraneethArc",
     eyebrow: "Wallet",
     pageTitle: "Dashboard",
     subtitle: "Live USDC balance and transfer history on Arc Testnet, plus shareable payment requests.",
