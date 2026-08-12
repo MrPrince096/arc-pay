@@ -14,7 +14,11 @@ services:
     name: praneetharc
     runtime: node
     plan: free
-    buildCommand: corepack enable && pnpm install --frozen-lockfile && pnpm build
+    # No `corepack enable` — Render's build image already provides pnpm
+    # (auto-detected from pnpm-lock.yaml), and corepack enable fails there
+    # with "EROFS: read-only file system, unlink '/usr/bin/pnpm'" since it
+    # tries to overwrite a binary on a read-only system path.
+    buildCommand: pnpm install --frozen-lockfile && pnpm build
     startCommand: pnpm start
     envVars:
       - key: NODE_VERSION
