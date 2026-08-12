@@ -28,11 +28,12 @@ export interface AgentSpendEntry {
   timestamp: number;
 }
 
-/** Arc's dual balance representation: native (18-dec, IS the USDC balance) and the ERC-20 interface (6-dec, same underlying balance, different view). Both should reconcile to the same USDC amount. */
+/** Arc's dual balance representation: native (18-dec, IS the USDC balance) and the ERC-20 interface (6-dec, same underlying balance, different view). Both should reconcile to the same USDC amount. Also includes EURC, a separate token, for the swap UI's "you have" display. */
 export interface WalletBalance {
   address: string;
   nativeUsdc: number;
   erc20Usdc: number;
+  eurc: number;
 }
 
 export interface TxSummary {

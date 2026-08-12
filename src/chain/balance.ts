@@ -1,6 +1,6 @@
 import { formatUnits } from "viem";
 import { arcClient } from "./arcClient.js";
-import { USDC_ERC20_INTERFACE_ADDRESS, NATIVE_USDC_DECIMALS, ERC20_USDC_DECIMALS } from "./constants.js";
+import { USDC_ERC20_INTERFACE_ADDRESS, NATIVE_USDC_DECIMALS, ERC20_USDC_DECIMALS, EURC_ADDRESS } from "./constants.js";
 import type { WalletBalance } from "../core/types.js";
 
 /** Minimal ERC-20 ABI — just balanceOf, since that's all we need here. */
@@ -22,10 +22,16 @@ const ERC20_BALANCE_ABI = [
  * useful sanity check, not redundant work.
  */
 export async function getWalletBalance(address: `0x${string}`): Promise<WalletBalance> {
-  const [nativeWei, erc20Raw] = await Promise.all([
+  const [nativeWei, erc20Raw, eurcRaw] = await Promise.all([
     arcClient.getBalance({ address }),
     arcClient.readContract({
       address: USDC_ERC20_INTERFACE_ADDRESS,
+      abi: ERC20_BALANCE_ABI,
+      functionName: "balanceOf",
+      args: [address],
+    }),
+    arcClient.readContract({
+      address: EURC_ADDRESS,
       abi: ERC20_BALANCE_ABI,
       functionName: "balanceOf",
       args: [address],
@@ -35,5 +41,7 @@ export async function getWalletBalance(address: `0x${string}`): Promise<WalletBa
     address,
     nativeUsdc: Number(formatUnits(nativeWei, NATIVE_USDC_DECIMALS)),
     erc20Usdc: Number(formatUnits(erc20Raw, ERC20_USDC_DECIMALS)),
+    // EURC is a standard 6-decimal ERC-20 (confirmed via the Arc Swap pair reserves earlier).
+    eurc: Number(formatUnits(eurcRaw, ERC20_USDC_DECIMALS)),
   };
 }

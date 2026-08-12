@@ -20,6 +20,9 @@ const EXTRA_CSS = `
   .flip-btn:hover { transform: rotate(180deg); border-color: var(--cyan); }
   .quote { padding: 14px 16px; border-radius: 12px; font-size: 13px; margin-top: 14px; background: var(--cyan-dim); border: 1px solid rgba(55,233,255,0.25); }
   .quote .out { font-size: 24px; font-weight: 700; font-family: var(--font-mono); margin: 4px 0 8px; }
+  .lblrow { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .max-btn { background: var(--cyan-dim); color: var(--cyan); border: none; border-radius: 5px; padding: 1px 7px; font-size: 10.5px; font-weight: 700; cursor: pointer; margin-left: 6px; }
+  .max-btn:hover { background: rgba(55,233,255,0.2); }
 </style>`;
 
 /** USDC ↔ EURC swap demo — powered by App Kit's own kit.swap()/estimateSwap(), verified live on Arc Testnet. Reuses the same wallet-bundle.js as the dashboard and pay page. */
@@ -33,18 +36,24 @@ export function swapPage(): string {
 
   <div id="swap-card" class="card swapbox" style="display:none">
     <div class="tokrow">
-      <div class="lbl">You pay</div>
+      <div class="lblrow">
+        <span class="lbl" style="margin:0">You pay</span>
+        <span class="faint num">Balance: <span id="bal-in">—</span><button class="max-btn" onclick="setMax()">MAX</button></span>
+      </div>
       <div class="amt">
-        <input id="amount-in" type="number" step="0.0001" value="1"/>
-        <div class="tokpill"><span class="coin coin-usdc" id="coin-in">$</span><select id="token-in" onchange="syncCoin()"><option value="USDC">USDC</option><option value="EURC">EURC</option></select></div>
+        <input id="amount-in" type="number" step="0.0001" value="1" oninput="renderBalances()"/>
+        <div class="tokpill"><span class="coin coin-usdc" id="coin-in">$</span><select id="token-in" onchange="onTokenChange()"><option value="USDC">USDC</option><option value="EURC">EURC</option></select></div>
       </div>
     </div>
     <div class="flip-wrap"><div class="flip-btn" onclick="flip()" title="Flip direction">⇅</div></div>
     <div class="tokrow">
-      <div class="lbl">You receive</div>
+      <div class="lblrow">
+        <span class="lbl" style="margin:0">You receive</span>
+        <span class="faint num">Balance: <span id="bal-out">—</span></span>
+      </div>
       <div class="amt">
         <div class="muted num" style="flex:1;font-size:26px" id="amount-out-preview">—</div>
-        <div class="tokpill"><span class="coin coin-eurc" id="coin-out">€</span><select id="token-out" onchange="syncCoin()"><option value="EURC">EURC</option><option value="USDC">USDC</option></select></div>
+        <div class="tokpill"><span class="coin coin-eurc" id="coin-out">€</span><select id="token-out" onchange="onTokenChange()"><option value="EURC">EURC</option><option value="USDC">USDC</option></select></div>
       </div>
     </div>
 
@@ -63,6 +72,9 @@ export function swapPage(): string {
 <script src="/static/wallet-bundle.js"></script>
 <script>
 const esc = s => String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+async function get(url){ const r = await fetch(url); const j = await r.json(); if(!r.ok||j.error) throw new Error(j.error||('HTTP '+r.status)); return j; }
+
+let walletBalance = { erc20Usdc: 0, eurc: 0 };
 
 function syncCoin(){
   const map = { USDC: { cls: 'coin-usdc', glyph: '$' }, EURC: { cls: 'coin-eurc', glyph: '€' } };
@@ -72,6 +84,30 @@ function syncCoin(){
     el.className = 'coin ' + map[tok].cls;
     el.textContent = map[tok].glyph;
   }
+}
+
+function balFor(tok){ return tok === 'USDC' ? walletBalance.erc20Usdc : walletBalance.eurc; }
+
+function renderBalances(){
+  const tokenIn = document.getElementById('token-in').value;
+  const tokenOut = document.getElementById('token-out').value;
+  document.getElementById('bal-in').textContent = balFor(tokenIn).toLocaleString('en-US',{maximumFractionDigits:6});
+  document.getElementById('bal-out').textContent = balFor(tokenOut).toLocaleString('en-US',{maximumFractionDigits:6});
+}
+
+function setMax(){
+  document.getElementById('amount-in').value = balFor(document.getElementById('token-in').value);
+}
+
+function onTokenChange(){ syncCoin(); renderBalances(); }
+
+async function loadBalance(){
+  const addr = window.ArcPayWallet.getAddress();
+  if(!addr) return;
+  try{
+    walletBalance = await get('/api/balance?address='+encodeURIComponent(addr));
+    renderBalances();
+  }catch(e){ /* balance is a nice-to-have here; a failed fetch shouldn't block the swap UI */ }
 }
 
 async function connect(){
@@ -84,6 +120,7 @@ async function connect(){
     out.innerHTML = '';
     btn.textContent = 'Connected';
     document.getElementById('swap-card').style.display = '';
+    await loadBalance();
   }catch(e){
     out.innerHTML = '<div class="err" style="margin-top:8px">'+esc(e.message)+'</div>';
     btn.disabled = false;
@@ -97,6 +134,7 @@ function flip(){
   tokenIn.value = tokenOut.value;
   tokenOut.value = tmp;
   syncCoin();
+  renderBalances();
   document.getElementById('amount-out-preview').textContent = '—';
   document.getElementById('quote-out').innerHTML = '';
   document.getElementById('swap-btn').style.display = 'none';
@@ -137,6 +175,7 @@ async function doSwap(){
   try{
     const txHash = await window.ArcPayWallet.swap(tokenIn, tokenOut, amountIn);
     out.innerHTML = '<div class="ok-box" style="margin-top:10px">✅ Swapped. <a href="${ARC_EXPLORER_URL}/tx/'+esc(txHash)+'" target="_blank" rel="noopener">View on Arcscan →</a></div>';
+    await loadBalance();
   }catch(e){
     out.innerHTML = '<div class="err-box" style="margin-top:10px">'+esc(e.message)+'</div>';
   }
