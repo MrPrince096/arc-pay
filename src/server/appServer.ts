@@ -16,6 +16,7 @@ import {
   apiAgentAction, apiAgentSpendLog,
   apiVerifySignature, apiVerifyTypedData,
   apiNftStats,
+  apiFxRates,
 } from "./api.js";
 
 /** `body` is `undefined` for GET routes — same pattern as the sibling Crypto auto project. */
@@ -53,6 +54,7 @@ const ROUTES: Record<string, Handler> = {
   "/api/sign/verify": apiVerifySignature,
   "/api/sign/verify-typed": apiVerifyTypedData,
   "/api/nft/stats": apiNftStats,
+  "/api/fx": apiFxRates,
 };
 
 const STATIC_DIR = join(process.cwd(), "src", "server", "static");

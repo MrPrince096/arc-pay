@@ -7,6 +7,7 @@ import { listInvoices, getInvoice, createInvoice, markInvoicePaid } from "./invo
 import { performGatedAction } from "../agent/circleWalletsAgent.js";
 import { listSpend } from "./agentSpendStore.js";
 import { todaysTotal } from "../agent/spendCap.js";
+import { fetchUsdRates } from "../core/fx.js";
 
 function requireAddress(q: URLSearchParams): `0x${string}` {
   const address = q.get("address");
@@ -27,6 +28,17 @@ export async function apiNftStats(q: URLSearchParams) {
   const address = q.get("address");
   if (address && !isAddress(address)) throw new Error("address must be a valid 0x address.");
   return getNftStats(address as `0x${string}` | undefined);
+}
+
+// --- FX conversion -------------------------------------------------------------
+
+/** USDC amounts are USD-denominated; this gives the UI a local-currency equivalent to show alongside them. */
+export async function apiFxRates(q: URLSearchParams) {
+  const symbols = (q.get("symbols") || "INR")
+    .split(",")
+    .map((s) => s.trim().toUpperCase())
+    .filter(Boolean);
+  return { base: "USD", rates: await fetchUsdRates(symbols) };
 }
 
 // --- Invoices ----------------------------------------------------------------

@@ -41,12 +41,16 @@ async function post(url,body){ const r = await fetch(url,{method:'POST',headers:
 
 const invoiceId = ${JSON.stringify(invoiceId)};
 let invoice = null;
+let inrRate = null;
+fetch('/api/fx?symbols=INR').then(r=>r.json()).then(j=>{ inrRate = j.rates && j.rates.INR; if(invoice) render(); }).catch(()=>{});
+const inrLine = () => (inrRate ? '<div class="faint" style="margin-top:-14px;margin-bottom:16px">≈ ₹'+Number(invoice.amountUsdc*inrRate).toLocaleString('en-IN',{maximumFractionDigits:0})+'</div>' : '');
 
 function render(){
   const card = document.getElementById('card');
   if(invoice.status === 'paid'){
     card.innerHTML = '<div class="pos" style="font-size:15px;font-weight:700;letter-spacing:.3px">✅ PAID</div>'
       + '<div class="amount">'+money(invoice.amountUsdc)+'</div>'
+      + inrLine()
       + '<div class="row"><span class="k">To</span><span class="addr">'+esc(invoice.recipient)+'</span></div>'
       + (invoice.memo ? '<div class="row"><span class="k">Memo</span><span>'+esc(invoice.memo)+'</span></div>' : '')
       + '<div class="row"><span class="k">Paid by</span><span class="addr">'+esc(invoice.payerAddress)+'</span></div>'
@@ -55,6 +59,7 @@ function render(){
   }
   card.innerHTML = '<div class="eyebrow">Payment request</div>'
     + '<div class="amount">'+money(invoice.amountUsdc)+'</div>'
+    + inrLine()
     + '<div class="row"><span class="k">To</span><span class="addr">'+esc(invoice.recipient)+'</span></div>'
     + (invoice.memo ? '<div class="row"><span class="k">Memo</span><span>'+esc(invoice.memo)+'</span></div>' : '')
     + '<button id="pay-btn" class="btn-block" style="margin-top:20px" onclick="pay()">Connect wallet &amp; pay</button>'
